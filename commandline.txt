@@ -1,0 +1,1 @@
+python3 main.py --name example --zone us-central1-a disco-light-253703 gs://disco-light-253703.appspot.com
