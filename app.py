@@ -1,6 +1,7 @@
 import sys
-from flask import Flask, request, abort
+from flask import Flask, request, abort, jsonify
 from create_instance import main
+import json
 
 app = Flask(__name__)
 
@@ -10,12 +11,13 @@ def webhook():
     print("webhook"); sys.stdout.flush()
     if request.method == 'POST':
         dictionary = dict(request.json)
-        project = dictionary["project"]
+        project = dictionary["queryResult"]["parameters"]["project_id"]
         bucket = "gs://"+project+".appspot.com"
-        instance_name = dictionary["name"]
-        zone = dictionary["zone"]
+        instance_name = dictionary["queryResult"]["parameters"]["name"]
+        zone = dictionary["queryResult"]["parameters"]["zone"]
         main(project,bucket,zone,instance_name)
-        return '', 200
+        json_file = json.load("payload.json")
+        return jsonify(json_file)
     else:
         abort(400)
 
