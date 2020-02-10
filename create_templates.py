@@ -1,4 +1,3 @@
-
 # Copyright 2015 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,14 +27,14 @@ from six.moves import input
 
 
 # [START list_instances]
-def list_instances(compute, project, zone):
-    result = compute.instances().list(project=project, zone=zone).execute()
+def list_instance_templates(compute, project, zone):
+    result = compute.instanceTemplates().list(project=project , zone=zone).execute()
     return result['items'] if 'items' in result else None
 # [END list_instances]
 
 
 # [START create_instance]
-def create_instance(compute, project, zone, name, bucket):
+def create_instance_templates(compute, project, zone, name, bucket):
     # Get the latest Debian Jessie image.
     image_response = compute.images().getFromFamily(
         project='debian-cloud', family='debian-9').execute()
@@ -96,7 +95,7 @@ def create_instance(compute, project, zone, name, bucket):
         }
     }
 
-    return compute.instances().insert(
+    return compute.instanceTemplates().insert(
         project=project,
         zone=zone,
         body=config).execute()
@@ -104,10 +103,9 @@ def create_instance(compute, project, zone, name, bucket):
 
 
 # [START delete_instance]
-def delete_instance(compute, project, zone, name):
-    return compute.instances().delete(
+def delete_instance_templates(compute, project, name):
+    return compute.instanceTemplates().delete(
         project=project,
-        zone=zone,
         instance=name).execute()
 # [END delete_instance]
 
@@ -135,19 +133,19 @@ def wait_for_operation(compute, project, zone, operation):
 def main(project, bucket, zone, instance_name, wait=True):
     compute = googleapiclient.discovery.build('compute', 'v1')
 
-    print('Creating instance.')
+    print('Creating instance template')
 
-    operation = create_instance(compute, project, zone, instance_name, bucket)
+    operation = create_instance_templates(compute, project, zone, instance_name, bucket)
     wait_for_operation(compute, project, zone, operation['name'])
 
-    instances = list_instances(compute, project, zone)
+    instance_templates = list_instance_templates(compute, project, zone)
 
-    print('Instances in project %s and zone %s:' % (project, zone))
-    for instance in instances:
+    print('Instance templates in project %s and zone %s:' % (project, zone))
+    for instance in instance_templates:
         print(' - ' + instance['name'])
 
     print("""
-Instance created.
+Instance Template created.
 It will take a minute or two for the instance to complete work.
 Check this URL: http://storage.googleapis.com/{}/output.png
 Once the image is uploaded press enter to delete the instance.
@@ -156,9 +154,8 @@ Once the image is uploaded press enter to delete the instance.
     if wait:
         input()
 
-    print('Deleting instance.')
-
-    operation = delete_instance(compute, project, zone, instance_name)
+    print('Deleting instance templates')
+    operation = delete_instance_templates(compute, project, instance_name)
     wait_for_operation(compute, project, zone, operation['name'])
 
 
@@ -180,3 +177,4 @@ if __name__ == '__main__':
 
     main(args.project_id, args.bucket_name, args.zone, args.name)
 # [END run]
+

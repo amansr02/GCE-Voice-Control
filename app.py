@@ -5,7 +5,6 @@ import json
 
 app = Flask(__name__)
 
-
 @app.route('/', methods=['POST'])
 def webhook():
     print("webhook"); sys.stdout.flush()
@@ -20,6 +19,12 @@ def webhook():
         return jsonify(json_file)
     else:
         abort(400)
+
+def group():
+    pass
+#Create instance templates. dont pass size. do create a while loop
+#naming convention = example1,example2,example3
+
 
 if __name__ == '__main__':
     app.run(host="127.0.0.1",port="80")
