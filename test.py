@@ -12,12 +12,16 @@ def main():
     #create_instance_main(project = project,bucket = bucket,zone = zone,instance_name = instance_name)
 
     #testing templates
-
-    create_templates_main(project = project,bucket=bucket,instance_name=instance_name,zone=zone)
+    #create_templates_main(project = project,bucket=bucket,instance_name=instance_name,zone=zone)
     
     #testing groups
-    #create_groups_main()
-
+    create_groups_main(
+            project=project,
+            bucket=bucket,
+            zone=zone,
+            instance_templates = instance_name,
+            instance_templates_size=1,
+            group_name = instance_name+"-group",group_size=1)
 
 
 if(__name__ == '__main__'):
