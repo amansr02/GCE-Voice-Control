@@ -28,7 +28,7 @@ from six.moves import input
 
 # [START list_instances]
 def list_instance_templates(compute, project, zone):
-    result = compute.instanceTemplates().list(project=project , zone=zone).execute()
+    result = compute.instanceTemplates().list(project=project).execute()
     return result['items'] if 'items' in result else None
 # [END list_instances]
 
@@ -44,60 +44,55 @@ def create_instance_templates(compute, project, zone, name, bucket):
     machine_type = "zones/%s/machineTypes/n1-standard-1" % zone
     image_url = "http://storage.googleapis.com/gce-demo-input/photo.jpg"
     image_caption = "Ready for dessert?"
+    config =  {
+            'name': name,
+            'type': 'compute.v1.instanceTemplate',
+            'properties': {
+                    'metadata': {
+                        'items': [{
+                            }]
+                        },
+                    'machineType': "n1-standard-1",
+                    'disks': [{
+                        'deviceName': 'boot',
+                        'boot': True,
+                        'autoDelete': True,
+                        'mode': 'READ_WRITE',
+                        'type': 'PERSISTENT',
+                        'initializeParams': {'sourceImage': source_disk_image}
+                        }],
+                    'networkInterfaces': [{
+                        'accessConfigs': [{
+                            'name': 'external-nat',
+                            'type': 'ONE_TO_ONE_NAT'
+                            }],
+                        }],
 
-    config = {
-        'name': name,
-        'machineType': machine_type,
-
-        # Specify the boot disk and the image to use as a source.
-        'disks': [
-            {
-                'boot': True,
-                'autoDelete': True,
-                'initializeParams': {
-                    'sourceImage': source_disk_image,
+                    'serviceAccounts': [{
+                        'email': 'default',
+                        'scopes': [
+                            'https://www.googleapis.com/auth/devstorage.read_write',
+                            'https://www.googleapis.com/auth/logging.write'
+                            ]
+                        }],
+                    'metadata': {
+                        'items': [
+                            {
+                                'key': 'url',
+                                'value': image_url
+                                }, {
+                                    'key': 'text',
+                                    'value': image_caption
+                                    }, {
+                                        'key': 'bucket',
+                                        'value': bucket
+                                        }]
+                                    }
+                    }
                 }
-            }
-        ],
-
-        # Specify a network interface with NAT to access the public
-        # internet.
-        'networkInterfaces': [{
-            'network': 'global/networks/default',
-            'accessConfigs': [
-                {'type': 'ONE_TO_ONE_NAT', 'name': 'External NAT'}
-            ]
-        }],
-
-        # Allow the instance to access cloud storage and logging.
-        'serviceAccounts': [{
-            'email': 'default',
-            'scopes': [
-                'https://www.googleapis.com/auth/devstorage.read_write',
-                'https://www.googleapis.com/auth/logging.write'
-            ]
-        }],
-
-        # Metadata is readable from the instance and allows you to
-        # pass configuration from deployment scripts to instances.
-        'metadata': {
-            'items': [
-             {
-                'key': 'url',
-                'value': image_url
-            }, {
-                'key': 'text',
-                'value': image_caption
-            }, {
-                'key': 'bucket',
-                'value': bucket
-            }]
-        }
-    }
 
     return compute.instanceTemplates().insert(
         project=project,
-        zone=zone,
         body=config).execute()
 # [END create_instance]
 
@@ -106,7 +101,7 @@ def create_instance_templates(compute, project, zone, name, bucket):
 def delete_instance_templates(compute, project, name):
     return compute.instanceTemplates().delete(
         project=project,
-        instance=name).execute()
+        instanceTemplate=name).execute()
 # [END delete_instance]
 
 
@@ -136,7 +131,7 @@ def main(project, bucket, zone, instance_name, wait=True):
     print('Creating instance template')
 
     operation = create_instance_templates(compute, project, zone, instance_name, bucket)
-    wait_for_operation(compute, project, zone, operation['name'])
+    #wait_for_operation(compute, project, zone, operation['name'])
 
     instance_templates = list_instance_templates(compute, project, zone)
 
@@ -156,7 +151,7 @@ Once the image is uploaded press enter to delete the instance.
 
     print('Deleting instance templates')
     operation = delete_instance_templates(compute, project, instance_name)
-    wait_for_operation(compute, project, zone, operation['name'])
+    #wait_for_operation(compute, project, zone, operation['name'])
 
 
 if __name__ == '__main__':
