@@ -39,7 +39,7 @@ def webhook():
         for number in range(0,int(instance_size*group_size),int(x)):
             for n in range(0,int(x)): 
                 instance(project,bucket,instance_name+str(number+n),region+"-"+zones[c])
-        c=c+1
+            c=c+1
 
         #Create group
         for number in range(0,group_size):
