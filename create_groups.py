@@ -30,9 +30,9 @@ from six.moves import input
 # [START create_instance]
 def create_group(compute, project,group_size,zone, name, bucket):
     # Get the latest Debian Jessie image.
-    zone_resource = compute.zones().get(project = project, zone=zone).execute()
-    zone_url = zone_resource['selfLink']
-    region = compute.regions().get(project = project , region = zone[:len(zone)-2]).execute()
+    #zone_resource = compute.zones().get(project = project, zone=zone).execute()
+    #zone_url = zone_resource['selfLink']
+    region = compute.regions().get(project = project , region = zone).execute()
     region_url = region['selfLink']
     # Configure the machine
     machine_type = "zones/%s/machineTypes/n1-standard-1" % zone
@@ -54,7 +54,7 @@ def create_group(compute, project,group_size,zone, name, bucket):
                 # (== resource_for {$api_version}.instanceGroups ==) (== resource_for {$api_version}.regionInstanceGroups ==)
                 "size": group_size, # [Output Only] The total number of instances in the instance group.
                 "kind": "compute#instanceGroup", # [Output Only] The resource type, which is always compute#instanceGroup for instance groups.
-                "zone": zone_url, # [Output Only] The URL of the zone where the instance group is located (for zonal resources).
+                #"zone": zone_url, # [Output Only] The URL of the zone where the instance group is located (for zonal resources).
                 "region": region_url, # [Output Only] The URL of the region where the instance group is located (for regional resources).
                 "name": name, # The name of the instance group. The name must be 1-63 characters long, and comply with RFC1035.
             }
@@ -97,7 +97,7 @@ def add_instances(compute,project, zone, name,size,instance_name):
     l = []
     for number in range(0,size):
         if(number == 0):
-            url = compute.instances().get(project = project,zone = zone,instance= instance_name).execute()
+            url = compute.instances().get(project = project,zone = zone,instance= instance_name+str(number)).execute()
             url = url["selfLink"]
             l.append({"instance":url})
         else:
@@ -119,7 +119,7 @@ def main(project, bucket, zone, instance_templates, instance_templates_size , gr
     operation = create_group(compute, project,group_size,zone, group_name, bucket)
     wait_for_operation(compute, project, zone, operation['name'])
 
-    print("adding templates")
+    print("adding instances")
     operation = add_instances(compute,project,zone,group_name,instance_templates_size,instance_templates)
 
     print("""
