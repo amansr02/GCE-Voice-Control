@@ -50,15 +50,15 @@ def webhook():
         if another instance is present in any group, the modulus operator restarts the zones from the start [modulus operator]
         """
 
-        #zone_counter = 0
-        #region_counter = 0
-        #total_instances = int(instance_per_group*instance_group_count)
-        #for instance_number in range(0,total_instances,instance_per_group):
-        #    for n in range(0,instance_per_group): 
-        #        instance(project_id,bucket,instance_name+str(zone_counter)+str(n),region[int(region_counter%len(region))]+"-"+characters[int(zone_counter%zones)])
-        #    zone_counter=zone_counter+1
-        #    if zone_counter%zones==0:
-        #       region_counter=region_counter+1 
+        zone_counter = 0
+        region_counter = 0
+        total_instances = int(instance_per_group*instance_group_count)
+        for instance_number in range(0,total_instances,instance_per_group):
+            for n in range(0,instance_per_group): 
+                instance(project_id,bucket,instance_name+str(zone_counter)+str(n),region[int(region_counter%len(region))]+"-"+characters[int(zone_counter%zones)])
+            zone_counter=zone_counter+1
+            if zone_counter%zones==0:
+               region_counter=region_counter+1 
 
         #Create group
         zone_counter = 0
