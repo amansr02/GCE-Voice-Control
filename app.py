@@ -12,6 +12,7 @@ app = Flask(__name__)
 def webhook():
 
     print("webhook"); sys.stdout.flush()
+    characters = ['a','b','c']
     
     if request.method == 'POST':
 
@@ -19,19 +20,40 @@ def webhook():
         project_id = dictionary["queryResult"]["parameters"]["project_id"]
         bucket = "gs://"+project_id+".appspot.com"
         region = dictionary["queryResult"]["parameters"]["region"]
-        zones = dictionary["queryResult"]["parameters"]["zone"]
+        zones = dictionary["queryResult"]["parameters"]["zone"]["number-integer"]
         instance_group_name = dictionary["queryResult"]["parameters"]["instance_group_name"]
         instance_per_group = dictionary["queryResult"]["parameters"]["instance_per_group"]["number-integer"]
-        instance_group_count = dictionary["queryResult"]["parameters"]["instance_group_count"]
-        instance_name = (project_id.split('-'))[0]
+        instance_group_count = dictionary["queryResult"]["parameters"]["instance_group_count"]["number-integer"]
 
-        #Create Instance
-        #create for loop and change instance_name
+        instance_name = (project_id.split('-'))[0]
+        characters = characters[0:zones]
+
+        """
+        Documentation: Instance Create 
+        for example
+        regions = [us-central1,us-west1]
+        zones = 3
+        group-name = example
+        instances_per_group = 3
+        group_count = 2
+
+        Example0 region:us-central1
+            - instance0 zone:a
+            - instance1 zone:b
+            - instance2 zone:c
+        Example1 region:us-west1   
+            - instance3 zone:a
+            - instance4 zone:b
+            - instance5 zone:c
+
+        if another example is created then us-central1 is used again.
+        if another instance is present in any group, the modulus operator restarts the zones from the start
+        """
         c = 0
-        x = (instance_per_group*instance_group_count)//len(zones)
-        for number in range(0,int(instance_per_group*instance_group_count),int(x)):
-            for n in range(0,int(x)): 
-                instance(project_id,bucket,instance_name+str(number+n),region+"-"+zones[c])
+        total_instances = int(instance_per_group*instance_group_count)
+        for instance_number in range(0,total_instances,instance_per_group):
+            for n in range(0,instance_per_group): 
+                instance(project_id,bucket,instance_name+str(c)+str(n),region[int(c%len(region))]+"-"+characters[int(n%zones)])
             c=c+1
 
         #Create group
