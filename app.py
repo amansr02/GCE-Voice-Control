@@ -8,6 +8,29 @@ import json
 
 app = Flask(__name__)
 
+"""
+    Documentation: Instance Create 
+    for example
+    region = [us-central1]
+    zones = 2
+    group-name = example
+    instances_per_group = 3
+    group_count = len(region)*zones
+
+    Example0 region:us-central1
+        - instance0 zone:a
+        - instance1 zone:a
+        - instance2 zone:a
+    Example1 region:us-central1  
+        - instance3 zone:b
+        - instance4 zone:b
+        - instance5 zone:b
+
+    if another example is created then us-central1 is used again. [modulus operator]
+    if another instance is present in any group, the modulus operator restarts the zones from the start [modulus operator]
+
+"""
+
 @app.route('/', methods=['POST'])
 def webhook():
 
@@ -28,27 +51,6 @@ def webhook():
         instance_group_count =  int(len(region)*zones)
         instance_group_name = instance_name
 
-        """
-        Documentation: Instance Create 
-        for example
-        region = [us-central1]
-        zones = 2
-        group-name = example
-        instances_per_group = 3
-        group_count = len(region)*zones
-
-        Example0 region:us-central1
-            - instance0 zone:a
-            - instance1 zone:a
-            - instance2 zone:a
-        Example1 region:us-central1  
-            - instance3 zone:b
-            - instance4 zone:b
-            - instance5 zone:b
-
-        if another example is created then us-central1 is used again. [modulus operator]
-        if another instance is present in any group, the modulus operator restarts the zones from the start [modulus operator]
-        """
 
         zone_counter = 0
         region_counter = 0
@@ -64,7 +66,8 @@ def webhook():
         zone_counter = 0
         region_counter = 0
         for number in range(0,instance_group_count):
-            group(project_id,bucket, region[int(region_counter%len(region))]+"-"+characters[int(zone_counter%zones)],instance_name+str(number),instance_per_group,instance_group_count,instance_group_name+str(number))
+            group(project_id,bucket, region[int(region_counter%len(region))]+"-"+characters[int(zone_counter%zones)],
+                    instance_name+str(number),instance_per_group,instance_group_count,instance_group_name+str(number))
             zone_counter=zone_counter+1
             if zone_counter%zones==0:
                region_counter=region_counter+1 
@@ -81,8 +84,8 @@ def webhook():
 def instance(project,bucket,instance_name,zone):
     main(project,bucket,zone,instance_name)
 
-def template(project,bucket,zone,instance_name):
-    create_templates_main(project = project,bucket = bucket,zone = zone,instance_name = instance_name)
+def firewall(project,firewall_name,priority,direction,ip_ranges,protocols_ports):
+    create_firewalls_main(project,firewall_name,priority,direction,ip_ranges,protocols_ports)
 
 def group(project,bucket,zone,instance_name,instance_size,group_size,instance_group_name):
     create_groups_main(

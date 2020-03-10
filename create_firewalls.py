@@ -12,12 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Example of using the Compute Engine API to create and delete instances.
-Creates a new compute engine instance and uses it to apply a caption to
-an image.
-    https://cloud.google.com/compute/docs/tutorials/python-guide
-For more information, see the README.md under /compute.
-"""
 
 import argparse
 import os
@@ -25,79 +19,60 @@ import time
 import googleapiclient.discovery
 from six.moves import input
 
+'''
+protocols_ports = [ [tcp,[22]] , [tcp,[43,22]] ]
+'''
 
 def list_firewall(compute, project):
     result = compute.firewalls().list(project = project).execute()
     return result['items'] if 'items' in result else None
 
+def create_firewall(compute,project,firewall_name,priority,direction,ip_ranges,protocols_ports,all_present):
 
-def create_firewalls(compute, project, zone, name, bucket):
-    body = {
+    allowed = []
+    #print(protocols_ports)
+    for item in protocols_ports:
+        print(item) 
+        allowed.append({
+                "IPProtocol": item[0],
+                "ports": item[1]
+        })
 
+    body = { 
+            "priority": priority,    
+            "direction": direction, 
+            "sourceRanges": ip_ranges,
+            "allowed": allowed,
+            "kind": "compute#firewall",     
+            "logConfig": { 
+                "enable": True, 
+                },
+            "disabled": False, 
+            "name": firewall_name,
+           }
 
-
-            }
-    return compute.instanceTemplates().insert(
+    return compute.firewalls().insert(
         project=project,
-        body=config).execute()
-# [END create_instance]
+        body=body).execute()
 
 
-# [START delete_instance]
-def delete_instance_templates(compute, project, name):
-    return compute.instanceTemplates().delete(
+def delete_firewall(compute, project, firewall_name):
+    return compute.firewalls().delete(
         project=project,
-        instanceTemplate=name).execute()
-# [END delete_instance]
+        firewall=firewall_name).execute()
 
+def main(project,firewall_name, priority,direction,ip_ranges,protocols_ports,all_present=False):
 
-# [START wait_for_operation]
-def wait_for_operation(compute, project, zone, operation):
-    print('Waiting for operation to finish...')
-    while True:
-        result = compute.zoneOperations().get(
-            project=project,
-            zone=zone,
-            operation=operation).execute()
-
-        if result['status'] == 'DONE':
-            print("done.")
-            if 'error' in result:
-                raise Exception(result['error'])
-            return result
-
-        time.sleep(1)
-# [END wait_for_operation]
-
-
-# [START run]
-def main(project, bucket, zone, instance_name, wait=True):
     compute = googleapiclient.discovery.build('compute', 'v1')
 
-    print('Creating instance template')
+    print('Creating firewall')
+    operation = create_firewall(compute,project,firewall_name,priority,direction,ip_ranges,protocols_ports,all_present)
 
-    operation = create_instance_templates(compute, project, zone, instance_name, bucket)
-    #wait_for_operation(compute, project, zone, operation['name'])
+    firewalls = list_firewall(compute, project)
 
-    instance_templates = list_instance_templates(compute, project, zone)
-
-    print('Instance templates in project %s and zone %s:' % (project, zone))
-    for instance in instance_templates:
-        print(' - ' + instance['name'])
-
-    print("""
-Instance Template created.
-It will take a minute or two for the instance to complete work.
-Check this URL: http://storage.googleapis.com/{}/output.png
-Once the image is uploaded press enter to delete the instance.
-""".format(bucket))
-
-   # if wait:
-   #     input()
-
-   # print('Deleting instance templates')
-   # operation = delete_instance_templates(compute, project, instance_name)
-   # #wait_for_operation(compute, project, zone, operation['name'])
+    print('Firewall in project %s:' % (project))
+    for firewall in firewalls:
+        print(' - ' + firewall['name'])
 
 
 if __name__ == '__main__':
@@ -117,5 +92,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     main(args.project_id, args.bucket_name, args.zone, args.name)
-# [END run]
 
