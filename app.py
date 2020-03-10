@@ -3,7 +3,7 @@ from flask import Flask, request, abort, jsonify
 from create_instance import main
 from create_instance import delete_instance
 from create_groups import main as create_groups_main
-from create_templates import main as create_templates_main
+from create_firewalls import main as create_firewalls_main
 import json
 
 app = Flask(__name__)

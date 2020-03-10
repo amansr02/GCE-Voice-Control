@@ -26,71 +26,17 @@ import googleapiclient.discovery
 from six.moves import input
 
 
-# [START list_instances]
-def list_instance_templates(compute, project, zone):
-    result = compute.instanceTemplates().list(project=project).execute()
+def list_firewall(compute, project):
+    result = compute.firewalls().list(project = project).execute()
     return result['items'] if 'items' in result else None
-# [END list_instances]
 
 
-# [START create_instance]
-def create_instance_templates(compute, project, zone, name, bucket):
-    # Get the latest Debian Jessie image.
-    image_response = compute.images().getFromFamily(
-        project='debian-cloud', family='debian-9').execute()
-    source_disk_image = image_response['selfLink']
+def create_firewalls(compute, project, zone, name, bucket):
+    body = {
 
-    # Configure the machine
-    machine_type = "zones/%s/machineTypes/n1-standard-1" % zone
-    image_url = "http://storage.googleapis.com/gce-demo-input/photo.jpg"
-    image_caption = "Ready for dessert?"
-    config =  {
-            'name': name,
-            'type': 'compute.v1.instanceTemplate',
-            'properties': {
-                    'metadata': {
-                        'items': [{
-                            }]
-                        },
-                    'machineType': "n1-standard-1",
-                    'disks': [{
-                        'deviceName': 'boot',
-                        'boot': True,
-                        'autoDelete': True,
-                        'mode': 'READ_WRITE',
-                        'type': 'PERSISTENT',
-                        'initializeParams': {'sourceImage': source_disk_image}
-                        }],
-                    'networkInterfaces': [{
-                        'accessConfigs': [{
-                            'name': 'external-nat',
-                            'type': 'ONE_TO_ONE_NAT'
-                            }],
-                        }],
 
-                    'serviceAccounts': [{
-                        'email': 'default',
-                        'scopes': [
-                            'https://www.googleapis.com/auth/devstorage.read_write',
-                            'https://www.googleapis.com/auth/logging.write'
-                            ]
-                        }],
-                    'metadata': {
-                        'items': [
-                            {
-                                'key': 'url',
-                                'value': image_url
-                                }, {
-                                    'key': 'text',
-                                    'value': image_caption
-                                    }, {
-                                        'key': 'bucket',
-                                        'value': bucket
-                                        }]
-                                    }
-                    }
-                }
 
+            }
     return compute.instanceTemplates().insert(
         project=project,
         body=config).execute()

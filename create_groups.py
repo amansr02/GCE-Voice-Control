@@ -107,7 +107,10 @@ def add_instances(compute,project, zone, name,size,instance_name):
     config ={
         "instances":l
     }
-    print(config)
+    config1 = {
+
+
+    }
     return compute.instanceGroups().addInstances(project=project, zone = zone, instanceGroup=name , body = config).execute()
 
 # [START run]

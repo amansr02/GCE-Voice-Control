@@ -95,13 +95,29 @@ def create_instance(compute, project, zone, name, bucket):
             }]
         }
     }
-
-    return compute.instances().insert(
+          
+    operation =  compute.instances().insert(
         project=project,
         zone=zone,
         body=config).execute()
-# [END create_instance]
+    
+    wait_for_operation(compute,project,zone,operation['name'])
 
+    #code to set tags based on groups
+    fingerprint = compute.instances().get(project = project,instance=name,zone=zone).execute()
+    fingerprint = fingerprint["tags"]["fingerprint"]
+    settag_config = {
+            "items":[name[0:len(name)-1]], 
+            "fingerprint": fingerprint
+    }
+    compute.instances().setTags(
+        project = project,
+        zone = zone,
+        instance = name,
+        body = settag_config).execute()
+
+    return operation
+# [END create_instance]
 
 # [START delete_instance]
 def delete_instance(compute, project, zone, name):
@@ -133,33 +149,18 @@ def wait_for_operation(compute, project, zone, operation):
 
 # [START run]
 def main(project, bucket, zone, instance_name, wait=True):
+
     compute = googleapiclient.discovery.build('compute', 'v1')
 
     print('Creating instance.')
 
     operation = create_instance(compute, project, zone, instance_name, bucket)
-    wait_for_operation(compute, project, zone, operation['name'])
 
     instances = list_instances(compute, project, zone)
 
     print('Instances in project %s and zone %s:' % (project, zone))
     for instance in instances:
         print(' - ' + instance['name'])
-
-    print("""
-Instance created.
-It will take a minute or two for the instance to complete work.
-Check this URL: http://storage.googleapis.com/{}/output.png
-Once the image is uploaded press enter to delete the instance.
-""".format(bucket))
-
-    #if wait:
-    #    input()
-
-    #print('Deleting instance.')
-
-    #operation = delete_instance(compute, project, zone, instance_name)
-    #wait_for_operation(compute, project, zone, operation['name'])
 
 
 if __name__ == '__main__':
