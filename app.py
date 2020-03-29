@@ -72,6 +72,10 @@ def webhook():
             if zone_counter%zones==0:
                region_counter=region_counter+1 
 
+        #Create Firewall
+        firewall = Firewall(project)
+        firewall.firewall_all_execute()
+
         json_file="" 
         with open("payload.json") as j:
             json_file = json.load(j)
