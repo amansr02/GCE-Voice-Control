@@ -27,7 +27,7 @@ def list_firewall(compute, project):
     result = compute.firewalls().list(project = project).execute()
     return result['items'] if 'items' in result else None
 
-def create_firewall(compute,project,firewall_name,priority,direction,ip_ranges,protocols_ports,all_present):
+def create_firewall(compute,project,firewall_name,priority,direction,ip_ranges,protocols_ports,allow):
 
     allowed = []
     #print(protocols_ports)
@@ -37,19 +37,32 @@ def create_firewall(compute,project,firewall_name,priority,direction,ip_ranges,p
                 "IPProtocol": item[0],
                 "ports": item[1]
         })
-
-    body = { 
-            "priority": priority,    
-            "direction": direction, 
-            "sourceRanges": ip_ranges,
-            "allowed": allowed,
-            "kind": "compute#firewall",     
-            "logConfig": { 
-                "enable": True, 
-                },
-            "disabled": False, 
-            "name": firewall_name,
-           }
+    if(allow):
+        body = { 
+                "priority": priority,    
+                "direction": direction, 
+                "sourceRanges": ip_ranges,
+                "allowed": allowed,
+                "kind": "compute#firewall",     
+                "logConfig": { 
+                    "enable": True, 
+                    },
+                "disabled": False, 
+                "name": firewall_name,
+               }
+    else:
+        body = { 
+                "priority": priority,    
+                "direction": direction, 
+                "sourceRanges": ip_ranges,
+                "denied": allowed,
+                "kind": "compute#firewall",     
+                "logConfig": { 
+                    "enable": True, 
+                    },
+                "disabled": False, 
+                "name": firewall_name,
+               }
 
     return compute.firewalls().insert(
         project=project,
@@ -61,12 +74,12 @@ def delete_firewall(compute, project, firewall_name):
         project=project,
         firewall=firewall_name).execute()
 
-def main(project,firewall_name, priority,direction,ip_ranges,protocols_ports,all_present=False):
+def main(project,firewall_name, priority,direction,ip_ranges,protocols_ports,allow=True):
 
     compute = googleapiclient.discovery.build('compute', 'v1')
 
     print('Creating firewall')
-    operation = create_firewall(compute,project,firewall_name,priority,direction,ip_ranges,protocols_ports,all_present)
+    operation = create_firewall(compute,project,firewall_name,priority,direction,ip_ranges,protocols_ports,allow)
 
     firewalls = list_firewall(compute, project)
 
@@ -92,4 +105,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     main(args.project_id, args.bucket_name, args.zone, args.name)
+
+
 

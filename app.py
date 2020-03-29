@@ -51,7 +51,7 @@ def webhook():
         instance_group_count =  int(len(region)*zones)
         instance_group_name = instance_name
 
-
+        #create instances
         zone_counter = 0
         region_counter = 0
         total_instances = int(instance_per_group*instance_group_count)
