@@ -109,7 +109,7 @@ class Firewall:
         )
 
     def firewall_all_deny():
-        priority = 1000
+        priority = 999
         direction = "Ingress"
         firewall_name = "firewall_alldeny_incoming"
         ip_ranges = []
@@ -125,6 +125,22 @@ class Firewall:
         )
 
     def firewall_all_execute():
-        pass
+        firewall_all_outgoing()
+        firewall_ssh_incoming()
+        #firewall_ssh_outgoing()
+        firewall_https_incoming()
+        firewall_imaps_incoming()
+        firewall_pop3s_incoming()
+        firewall_all_deny()
+
     def custom_firewall():
-        pass
+        create_firewalls_main(
+                project = self.project,
+                firewall_name = self.firewall_name,
+                priority = self.priority,
+                direction = self.direction,
+                ip_ranges = self.ip_ranges,
+                protocols_ports = self.protocols_ports,
+                allow = self.allow
+        )
+        
