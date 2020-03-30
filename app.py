@@ -88,9 +88,6 @@ def webhook():
 def instance(project,bucket,instance_name,zone):
     main(project,bucket,zone,instance_name)
 
-def firewall(project,firewall_name,priority,direction,ip_ranges,protocols_ports):
-    create_firewalls_main(project,firewall_name,priority,direction,ip_ranges,protocols_ports)
-
 def group(project,bucket,zone,instance_name,instance_size,group_size,instance_group_name):
     create_groups_main(
             project=project,
