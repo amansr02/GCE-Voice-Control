@@ -4,6 +4,7 @@ from create_instance import main
 from create_instance import delete_instance
 from create_groups import main as create_groups_main
 from create_firewalls import main as create_firewalls_main
+from firewalls import Firewall
 import json
 
 app = Flask(__name__)
@@ -40,16 +41,15 @@ def webhook():
     if request.method == 'POST':
 
         dictionary = dict(request.json)
-        project_id = dictionary["queryResult"]["parameters"]["project_id"]
+        project_id = dictionary["queryResult"]["outputContexts"][0]["parameters"]["project_id.original"]
         bucket = "gs://"+project_id+".appspot.com"
-        region = dictionary["queryResult"]["parameters"]["region"]
-        zones = dictionary["queryResult"]["parameters"]["zone"]["number-integer"]
-        instance_per_group = dictionary["queryResult"]["parameters"]["instance_per_group"]["number-integer"]
-
+        region = dictionary["queryResult"]["outputContexts"][0]["parameters"]["region.original"]
+        zones = int(dictionary["queryResult"]["outputContexts"][0]["parameters"]["zone"]["number-integer"])
+        instance_per_group = int(dictionary["queryResult"]["outputContexts"][0]["parameters"]["instance_per_group"]["number-integer"])
+        instance_group_name = dictionary["queryResult"]["outputContexts"][0]["parameters"]["instance_group_name.original"]
         instance_name = (project_id.split('-'))[0]
         characters = characters[0:zones]
         instance_group_count =  int(len(region)*zones)
-        instance_group_name = instance_name
 
         #create instances
         zone_counter = 0
@@ -66,14 +66,15 @@ def webhook():
         zone_counter = 0
         region_counter = 0
         for number in range(0,instance_group_count):
+            region_zone = region[int(region_counter%len(region))]+"-"+characters[int(zone_counter%zones)]
             group(project_id,bucket, region[int(region_counter%len(region))]+"-"+characters[int(zone_counter%zones)],
-                    instance_name+str(number),instance_per_group,instance_group_count,instance_group_name+str(number))
+                    instance_name+str(number),instance_per_group,instance_group_count,region_zone)
             zone_counter=zone_counter+1
             if zone_counter%zones==0:
                region_counter=region_counter+1 
 
         #Create Firewall
-        firewall = Firewall(project)
+        firewall = Firewall(project_id)
         firewall.firewall_all_execute()
 
         json_file="" 
